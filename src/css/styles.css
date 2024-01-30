@@ -81,7 +81,7 @@ button {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100px; /* Задайте висоту або використовуйте інші методи для центрування на висоті */
+  height: 100px;
 }
 .load-more-button {
   gap: 10px;
