@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const gallery = document.getElementById('gallery');
   const loadMoreButton = document.getElementById('loadMoreButton');
 
-  const apiKey = '41901564-aceebb7c9fdd08ac794ac72d8';
+  const apiKey = '42094427-74698892ced21067e7c382b52';
   let currentPage = 1;
   let totalHits = 0;
   let currentSearchTerm = '';
