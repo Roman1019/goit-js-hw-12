@@ -16,6 +16,11 @@ document.addEventListener('DOMContentLoaded', function () {
   let totalHits = 0;
   let currentSearchTerm = '';
 
+  const lightbox = new SimpleLightbox('.gallery a', {
+    captionsData: 'alt',
+    captionDelay: 250,
+  });
+
   hideLoader(loaderContainer);
   loadMoreButton.style.display = 'none';
 
@@ -142,11 +147,6 @@ document.addEventListener('DOMContentLoaded', function () {
       .join('');
 
     gallery.insertAdjacentHTML('beforeend', galleryHTML);
-
-    const lightbox = new SimpleLightbox('.gallery a', {
-      captionsData: 'alt',
-      captionDelay: 250,
-    });
 
     lightbox.refresh();
   }
