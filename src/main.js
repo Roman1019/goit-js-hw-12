@@ -4,124 +4,197 @@ import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import axios from 'axios';
 
-document.addEventListener('DOMContentLoaded', function () {
-  const loaderContainer = document.getElementById('loader-container');
-  const searchForm = document.getElementById('searchForm');
-  const searchInput = document.getElementById('searchInput');
-  const gallery = document.getElementById('gallery');
-  const loadMoreButton = document.getElementById('loadMoreButton');
+const formSearch = document.querySelector('.form-search');
+const searchBox = document.querySelector('.search-box');
+const galleryImage = document.querySelector('.gallery');
+const loader = document.querySelector('.loader');
+const loadMoreBtn = document.querySelector('.load-btn');
+const loaderEnd = document.querySelector('.loader-more');
 
-  const apiKey = '42094427-74698892ced21067e7c382b52';
-  let currentPage = 1;
-  let totalHits = 0;
-  let currentSearchTerm = '';
+const BASE_URL = 'https://pixabay.com/api';
+const API_KEY = '42094427-74698892ced21067e7c382b52';
 
-  const lightbox = new SimpleLightbox('.gallery a', {
-    captionsData: 'alt',
-    captionDelay: 250,
-  });
+loader.style.display = 'none';
+loadMoreBtn.style.display = 'none';
+loaderEnd.style.display = 'none';
 
-  hideLoader(loaderContainer);
-  loadMoreButton.style.display = 'none';
+let page = 1;
+let totalHits = 0;
+const perPage = 40;
+let originalQuery = '';
+const clearSearch = lightbox();
 
-  searchForm.addEventListener('submit', async function (e) {
-    e.preventDefault();
-    currentPage = 1;
-    loadMoreButton.style.display = 'none';
+formSearch.addEventListener('submit', async function (event) {
+  event.preventDefault();
 
-    const searchTerm = searchInput.value.trim();
-    if (searchTerm === '') {
+  const query = encodeURIComponent(searchBox.value.trim());
+
+  if (query.trim() === '') {
+    iziToast.error({
+      title: 'Error',
+      message: 'Enter search data',
+    });
+    return;
+  }
+  originalQuery = query;
+  page = 1;
+  loadMoreBtn.style.display = 'none';
+  loader.style.display = 'block';
+
+  lightbox();
+
+  function displayImages(images) {
+    galleryImage.innerHTML = '';
+
+    if (images.length === 0) {
       iziToast.error({
         title: 'Error',
-        message: 'Please enter a search term',
+        message:
+          'Sorry, there are no images matching your search query. Please try again!',
       });
-      hideLoader(loaderContainer);
       return;
     }
-    currentSearchTerm = searchTerm;
-    showLoader(loaderContainer);
-    try {
-      await fetchData(currentSearchTerm);
-    } finally {
-      hideLoader(loaderContainer);
-    }
-  });
 
-  async function fetchData(searchTerm) {
-    const { data } = await axios.get('https://pixabay.com/api/', {
-      params: {
-        key: apiKey,
-        q: searchTerm,
-        image_type: 'photo',
-        orientation: 'horizontal',
-        safesearch: true,
-        per_page: 40,
-        page: currentPage,
-      },
-    });
-    return data;
+    const markup = createMarkup(images);
+    galleryImage.innerHTML = markup;
+    loadMoreBtn.style.display = 'block';
+
+    clearSearch.refresh();
   }
+  formSearch.reset();
 
-  loadMoreButton.addEventListener('click', async function () {
-    currentPage++;
-    await fetchData(currentSearchTerm);
-    smoothScroll();
-  });
-  function smoothScroll() {
-    const cardHeight = document
-      .querySelector('.gallery-item')
-      .getBoundingClientRect().height;
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/?key=${API_KEY}&q=${query}&image_type=photo&orientation=horizontal&safesearch=true&page=${page}&per_page=40`
+    );
+    totalHits = response.data.totalHits;
+    displayImages(response.data.hits);
+  } catch (error) {
+    console.error(error);
+    iziToast.warning({
+      title: 'Error',
+      message: 'Something went wrong',
+    });
+  } finally {
+    loader.style.display = 'none';
+  }
+});
 
+loadMoreBtn.addEventListener('click', async () => {
+  try {
+    loaderEnd.style.display = 'block';
+    const query = encodeURIComponent(originalQuery.trim());
+    page++;
+    const response = await axios.get(
+      `${BASE_URL}/?key=${API_KEY}&q=${query}&image_type=photo&orientation=horizontal&safesearch=true&page=${page}&per_page=40`
+    );
+    totalHits = response.data.totalHits;
+    const newImages = response.data.hits;
+    const totalPages = Math.ceil(totalHits / perPage);
+
+    if (totalHits > 0 && page > totalPages) {
+      iziToast.info({
+        title: 'Info',
+        message: "We're sorry, but you've reached the end of search results.",
+      });
+      return;
+    }
+
+    const markup = createMarkup(newImages);
+    galleryImage.insertAdjacentHTML('beforeend', markup);
+
+    lightbox();
+
+    clearSearch.refresh();
+  } catch (error) {
+    console.error(error);
+    iziToast.warning({
+      title: 'Error',
+      message: 'Something went wrong',
+    });
+  } finally {
+    loaderEnd.style.display = 'none';
+
+    const cardHeight = getGalleryCardHeight();
     window.scrollBy({
       top: cardHeight * 2,
+      left: 0,
       behavior: 'smooth',
     });
   }
-  function showLoader(loaderContainer) {
-    if (loaderContainer) {
-      loaderContainer.style.display = 'block';
-    }
-  }
+});
 
-  function hideLoader(loaderContainer) {
-    if (loaderContainer) {
-      loaderContainer.style.display = 'none';
-    }
-  }
+const scrollButton = document.querySelector('.scroll-to-top-btn');
 
-  function displayImages(images) {
-    const galleryHTML = images
-      .map(image => {
-        return `
-         <div class="gallery-item">
-      <a href="${image.largeImageURL}" data-lightbox="gallery" data-title="Likes: ${image.likes}, Views: ${image.views}, Comments: ${image.comments}, Downloads: ${image.downloads}">
-          <img src="${image.webformatURL}" alt="${image.tags}" data-src="${image.largeImageURL}" data-caption="Likes: ${image.likes}, Views: ${image.views}, Comments: ${image.comments}, Downloads: ${image.downloads}">
-        </a>
-        <div class="image-stats">
-      <div class="stat-item">
-        <p class="stat-label">Likes:</p>
-        <p class="stat-value">${image.likes}</p>
-      </div>
-      <div class="stat-item">
-        <p class="stat-label">Views:</p>
-        <p class="stat-value">${image.views}</p>
-      </div>
-      <div class="stat-item">
-        <p class="stat-label">Comments:</p>
-        <p class="stat-value">${image.comments}</p>
-      </div>
-      <div class="stat-item">
-        <p class="stat-label">Downloads:</p>
-        <p class="stat-value">${image.downloads}</p>
-      </div>
-    </div>
-    </div>
-      `;
-      })
-      .join('');
-
-    gallery.insertAdjacentHTML('beforeend', galleryHTML);
-
-    lightbox.refresh();
+window.addEventListener('scroll', function () {
+  if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+    scrollButton.style.display = 'block';
+  } else {
+    scrollButton.style.display = 'none';
   }
 });
+scrollButton.addEventListener('click', function () {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth',
+  });
+});
+
+function getGalleryCardHeight() {
+  const galleryItem = document.querySelector('.gallery-item');
+  const cardHeight = galleryItem.getBoundingClientRect().height;
+  return cardHeight;
+}
+
+function lightbox() {
+  const clearSearch = new SimpleLightbox('.gallery a', {
+    captionsData: 'alt',
+    captions: true,
+    captionDelay: 250,
+  });
+  return clearSearch;
+}
+
+function createMarkup(images) {
+  return images
+    .map(
+      ({
+        webformatURL,
+        largeImageURL,
+        tags,
+        likes,
+        views,
+        comments,
+        downloads,
+      }) =>
+        `<li class="gallery-item">
+          <a class="gallery-link" href="${largeImageURL}">
+            <img
+              class="gallery-image"
+              src="${webformatURL}"
+              alt="${tags}"
+              width="360"
+            />
+          </a>
+          <div class="info-section">
+            <div class="section">
+              <h2 class="tittle">Likes</h2>
+              <p class="quantity">${likes}</p>
+            </div>
+            <div class="section">
+              <h2 class="tittle">Views</h2>
+              <p class="quantity">${views}</p>
+            </div>
+            <div class="section">
+              <h2 class="tittle">Comments</h2>
+              <p class="quantity">${comments}</p>
+            </div>
+            <div class="section">
+              <h2 class="tittle">Downloads</h2>
+              <p class="quantity">${downloads}</p>
+            </div>
+          </div>
+        </li>`
+    )
+    .join('');
+}
