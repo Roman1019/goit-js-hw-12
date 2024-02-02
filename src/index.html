@@ -1,29 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Homework 12</title>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>goit-js-hw-12</title>
+  <link rel="stylesheet" href="./css/styles.css">
+</head>
 
-    <link rel="stylesheet" href="./css/styles.css" />
-  </head>
-  <body>
-    <p><a href="index.html">Back</a></p>
-    <div class="container">
-      <form id="searchForm">
-        <label for="searchInput"></label>
-        <input type="text" id="searchInput" placeholder="Search images..." />
-        <button type="submit" class="btn">Start</button>
-      </form>
-      <div id="gallery" class="gallery"></div>
-      <div class="load-more-container">
-        <button id="loadMoreButton" class="load-more-button">Load more</button>
-      </div>
-      <div class="loader-container" id="loader-container">
-        <div class="loader"></div>
-      </div>
-    </div>
-    <script src="./main.js" type="module"></script>
-  </body>
+<body>
+<form class="form-search">
+  <input class="search-box" 
+   type="text" name="search" 
+   autocomplete="off" 
+   placeholder="Search images...">
+  <button class="btn" type="submit">Search</button>
+  </button>
+</form>
+<div class="container">
+    <span class="loader"></span>
+    <ul class="gallery"></ul>
+  </div>
+  <div class="load-more">
+    <span class="loader-more"></span>
+   <button class="load-btn" type="submit">Load more</button>
+  </div>
+  <script src="./main.js" type="module" ></script>
+   <span class="scroll-to-top-btn"></span>
+</body>
 </html>
