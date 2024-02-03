@@ -86,7 +86,7 @@ loadMoreBtn.addEventListener('click', async () => {
     const newImages = response.data.hits;
     const totalPages = Math.ceil(totalHits / perPage);
 
-    if (totalHits > 0 && page > totalPages) {
+    if (totalHits > 0 && page === totalPages) {
       iziToast.info({
         title: 'Info',
         message: "We're sorry, but you've reached the end of search results.",
