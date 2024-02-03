@@ -55,6 +55,14 @@ formSearch.addEventListener('submit', async function (event) {
     );
     totalHits = response.data.totalHits;
     displayImages(response.data.hits);
+    if (totalHits > 0 && totalHits <= perPage) {
+      iziToast.info({
+        title: 'Info',
+        message: "We're sorry, but you've reached the end of search results.",
+      });
+      loadMoreBtn.style.display = 'none';
+      return;
+    }
   } catch (error) {
     console.error(error);
     iziToast.warning({
